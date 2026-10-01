@@ -50,11 +50,14 @@ class GameEngine:
         # to both be up and the player clicks in that overlap zone,
         # both holes register a hit from the same click, awarding two
         # points for a single whack. See Task 1 in the README.
+        
+
         for hole in self.holes:
             if hole.rect().collidepoint(pos):
                 if hole.whack():
                     self.score += 1
                     hit_something = True
+                    break
 
         if not hit_something:
             self.misses += 1
