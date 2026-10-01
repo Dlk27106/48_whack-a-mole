@@ -32,10 +32,14 @@ class GameEngine:
         self.misses = 0
         self.font = pygame.font.SysFont("Arial", 28)
         self.game_over = False
+        self.exit_requested = False
 
     def handle_event(self, event):
         if self.game_over:
+            if event.type == pygame.KEYDOWN:
+                self.exit_requested = True
             return
+
         if event.type == pygame.MOUSEBUTTONDOWN:
             self._handle_click(event.pos)
 
@@ -50,7 +54,6 @@ class GameEngine:
         # to both be up and the player clicks in that overlap zone,
         # both holes register a hit from the same click, awarding two
         # points for a single whack. See Task 1 in the README.
-        
 
         for hole in self.holes:
             if hole.rect().collidepoint(pos):
@@ -83,18 +86,68 @@ class GameEngine:
 
     def render(self, screen):
         for hole in self.holes:
-            pygame.draw.circle(screen, DARK_BROWN, (hole.center_x, hole.center_y), 40)
-            if hole.active:
-                pygame.draw.circle(screen, MOLE_BROWN, (hole.center_x, hole.center_y), 32)
+            pygame.draw.circle(
+                screen,
+                DARK_BROWN,
+                (hole.center_x, hole.center_y),
+                40
+            )
 
-        score_text = self.font.render(f"Score: {self.score}", True, BLACK)
+            if hole.active:
+                pygame.draw.circle(
+                    screen,
+                    MOLE_BROWN,
+                    (hole.center_x, hole.center_y),
+                    32
+                )
+
+        score_text = self.font.render(
+            f"Score: {self.score}",
+            True,
+            BLACK
+        )
         screen.blit(score_text, (10, 10))
 
         seconds_left = max(0, self.time_left_frames // 60)
-        timer_text = self.font.render(f"Time: {seconds_left}s", True, BLACK)
+        timer_text = self.font.render(
+            f"Time: {seconds_left}s",
+            True,
+            BLACK
+        )
         screen.blit(timer_text, (self.width - 140, 10))
 
-        if self.game_over and not getattr(self, "_game_over_logged", False):
-            # NOTE: no proper game-over screen yet - see Task 2 in the README.
-            print("Time's up! Final score:", self.score)
-            self._game_over_logged = True
+        if self.game_over:
+            overlay = pygame.Surface((self.width, self.height))
+            overlay.set_alpha(220)
+            overlay.fill((255, 255, 255))
+            screen.blit(overlay, (0, 0))
+
+            game_over_text = self.font.render(
+                "GAME OVER",
+                True,
+                BLACK
+            )
+            game_over_rect = game_over_text.get_rect(
+                center=(self.width // 2, self.height // 2 - 40)
+            )
+            screen.blit(game_over_text, game_over_rect)
+
+            final_score_text = self.font.render(
+                f"Final Score: {self.score}",
+                True,
+                BLACK
+            )
+            final_score_rect = final_score_text.get_rect(
+                center=(self.width // 2, self.height // 2 + 10)
+            )
+            screen.blit(final_score_text, final_score_rect)
+
+            instruction_text = self.font.render(
+                "Press any key to exit",
+                True,
+                BLACK
+            )
+            instruction_rect = instruction_text.get_rect(
+                center=(self.width // 2, self.height // 2 + 60)
+            )
+            screen.blit(instruction_text, instruction_rect)
